@@ -110,8 +110,20 @@ export default function NewWorkerPage() {
           )}
           <span>{name ? `${name} Preview` : "Preview"}</span>
         </div>
-        <div className="flex-1 overflow-hidden">
-          <Assistant store={previewStore} developerPrompt={previewPrompt} />
+        <div className="flex-1 overflow-hidden flex flex-col items-center">
+          {avatarUrl && (
+            <img
+              src={avatarUrl}
+              alt="avatar"
+              className="w-32 h-32 rounded-full mt-6 mb-2"
+            />
+          )}
+          <Assistant
+            store={previewStore}
+            developerPrompt={previewPrompt}
+            assistantAvatarUrl={avatarUrl}
+            showAssistantAvatar
+          />
         </div>
       </div>
     </div>

@@ -4,9 +4,15 @@ import ReactMarkdown from "react-markdown";
 
 interface MessageProps {
   message: MessageItem;
+  assistantAvatarUrl?: string;
+  showAssistantAvatar?: boolean;
 }
 
-const Message: React.FC<MessageProps> = ({ message }) => {
+const Message: React.FC<MessageProps> = ({
+  message,
+  assistantAvatarUrl,
+  showAssistantAvatar,
+}) => {
   return (
     <div className="text-sm">
       {message.role === "user" ? (
@@ -26,6 +32,13 @@ const Message: React.FC<MessageProps> = ({ message }) => {
       ) : (
         <div className="flex flex-col">
           <div className="flex">
+            {showAssistantAvatar && assistantAvatarUrl && (
+              <img
+                src={assistantAvatarUrl}
+                alt="avatar"
+                className="w-8 h-8 rounded-full mr-2"
+              />
+            )}
             <div className="mr-4 rounded-[16px] px-4 py-2 md:mr-24 text-black bg-white font-light">
               <div>
                 <ReactMarkdown>

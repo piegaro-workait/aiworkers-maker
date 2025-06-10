@@ -14,12 +14,16 @@ interface ChatProps {
   items: Item[];
   onSendMessage: (message: string) => void;
   onApprovalResponse: (approve: boolean, id: string) => void;
+  assistantAvatarUrl?: string;
+  showAssistantAvatar?: boolean;
 }
 
 const Chat: React.FC<ChatProps> = ({
   items,
   onSendMessage,
   onApprovalResponse,
+  assistantAvatarUrl,
+  showAssistantAvatar,
 }) => {
   const itemsEndRef = useRef<HTMLDivElement>(null);
   const [inputMessageText, setinputMessageText] = useState<string>("");
@@ -57,7 +61,11 @@ const Chat: React.FC<ChatProps> = ({
                   <ToolCall toolCall={item} />
                 ) : item.type === "message" ? (
                   <div className="flex flex-col gap-1">
-                    <Message message={item} />
+                    <Message
+                      message={item}
+                      assistantAvatarUrl={assistantAvatarUrl}
+                      showAssistantAvatar={showAssistantAvatar}
+                    />
                     {item.content &&
                       item.content[0].annotations &&
                       item.content[0].annotations.length > 0 && (
