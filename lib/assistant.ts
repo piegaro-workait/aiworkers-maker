@@ -1,7 +1,10 @@
 import { DEVELOPER_PROMPT } from "@/config/constants";
 import { parse } from "partial-json";
 import { handleTool } from "@/lib/tools/tools-handling";
-import useConversationStore from "@/stores/useConversationStore";
+import useConversationStore, {
+  ConversationState,
+} from "@/stores/useConversationStore";
+import { StoreApi } from "zustand";
 import { getTools } from "./tools/tools";
 import { Annotation } from "@/components/annotations";
 import { functionsMap } from "@/config/functions";
@@ -75,7 +78,7 @@ export type Item =
 export const handleTurn = async (
   messages: any[],
   tools: any[],
-  onMessage: (data: any) => void
+  onMessage: (data: any) => void,
 ) => {
   try {
     // Get response from the API (defined in app/api/turn_response/route.ts)
@@ -134,21 +137,24 @@ export const handleTurn = async (
   }
 };
 
-export const processMessages = async () => {
+export const processMessages = async (
+  store: StoreApi<ConversationState> = useConversationStore,
+  developerPrompt: string = DEVELOPER_PROMPT,
+) => {
   const {
     chatMessages,
     conversationItems,
     setChatMessages,
     setConversationItems,
     setAssistantLoading,
-  } = useConversationStore.getState();
+  } = store.getState();
 
   const tools = getTools();
   const allConversationItems = [
     // Adding developer prompt as first item in the conversation
     {
       role: "developer",
-      content: DEVELOPER_PROMPT,
+      content: developerPrompt,
     },
     ...conversationItems,
   ];
@@ -329,7 +335,7 @@ export const processMessages = async () => {
           // Handle tool call (execute function)
           const toolResult = await handleTool(
             toolCallMessage.name as keyof typeof functionsMap,
-            toolCallMessage.parsedArguments
+            toolCallMessage.parsedArguments,
           );
 
           // Record tool output
@@ -344,7 +350,7 @@ export const processMessages = async () => {
           setConversationItems([...conversationItems]);
 
           // Create another turn after tool output has been added
-          await processMessages();
+          await processMessages(store, developerPrompt);
         }
         if (
           toolCallMessage &&
@@ -460,7 +466,7 @@ export const processMessages = async () => {
               m.type === "tool_call" &&
               m.tool_type === "code_interpreter_call" &&
               m.status !== "completed" &&
-              m.id === item_id
+              m.id === item_id,
           ) as ToolCallItem | undefined;
         // Accumulate deltas to show the code streaming
         if (toolCallMessage) {
@@ -479,7 +485,7 @@ export const processMessages = async () => {
               m.type === "tool_call" &&
               m.tool_type === "code_interpreter_call" &&
               m.status !== "completed" &&
-              m.id === item_id
+              m.id === item_id,
           ) as ToolCallItem | undefined;
 
         // Mark the call as completed and set the code
@@ -494,7 +500,7 @@ export const processMessages = async () => {
       case "response.code_interpreter_call.completed": {
         const { item_id } = data;
         const toolCallMessage = chatMessages.find(
-          (m) => m.type === "tool_call" && m.id === item_id
+          (m) => m.type === "tool_call" && m.id === item_id,
         ) as ToolCallItem | undefined;
         if (toolCallMessage) {
           toolCallMessage.status = "completed";
@@ -509,7 +515,7 @@ export const processMessages = async () => {
 
         // Handle MCP tools list
         const mcpListToolsMessage = response.output.find(
-          (m: Item) => m.type === "mcp_list_tools"
+          (m: Item) => m.type === "mcp_list_tools",
         );
 
         if (mcpListToolsMessage) {
@@ -524,7 +530,7 @@ export const processMessages = async () => {
 
         // Handle MCP approval request
         const mcpApprovalRequestMessage = response.output.find(
-          (m: Item) => m.type === "mcp_approval_request"
+          (m: Item) => m.type === "mcp_approval_request",
         );
 
         if (mcpApprovalRequestMessage) {
