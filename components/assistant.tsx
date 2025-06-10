@@ -11,6 +11,8 @@ interface AssistantProps {
   initialMessage?: string;
   developerPrompt?: string;
   onUserMessage?: (message: string) => void;
+  assistantAvatarUrl?: string;
+  showAssistantAvatar?: boolean;
 }
 
 export default function Assistant({
@@ -18,6 +20,8 @@ export default function Assistant({
   initialMessage,
   developerPrompt,
   onUserMessage,
+  assistantAvatarUrl,
+  showAssistantAvatar,
 }: AssistantProps) {
   const {
     chatMessages,
@@ -87,6 +91,8 @@ export default function Assistant({
         items={chatMessages}
         onSendMessage={handleSendMessage}
         onApprovalResponse={handleApprovalResponse}
+        assistantAvatarUrl={assistantAvatarUrl}
+        showAssistantAvatar={showAssistantAvatar}
       />
     </div>
   );
