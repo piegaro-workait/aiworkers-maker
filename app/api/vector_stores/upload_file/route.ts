@@ -12,6 +12,9 @@ export async function POST(request: Request) {
     const form = new FormData();
     form.append('file', fileBlob, fileObject.name);
 
+    const form = new FormData();
+    form.append("file", fileBlob, fileObject.name);
+
     const file = await openai.files.create({
       file: form.get('file') as any,
       purpose: "assistants",
