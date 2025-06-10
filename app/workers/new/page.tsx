@@ -31,8 +31,28 @@ export default function NewWorkerPage() {
     createConversationStore(WORKER_WIZARD_INITIAL_MESSAGE),
   ).current;
   const previewStore = useRef(createConversationStore(INITIAL_MESSAGE)).current;
-  const { role, name, avatarUrl, setRole, setName, setAvatarUrl } =
+  const { role, name, avatarUrl, reset, setRole, setName, setAvatarUrl } =
     useWorkerFormStore();
+
+  const restart = () => {
+    reset();
+    wizardStore.getState().setChatMessages([
+      {
+        type: "message",
+        role: "assistant",
+        content: [{ type: "output_text", text: WORKER_WIZARD_INITIAL_MESSAGE }],
+      },
+    ]);
+    wizardStore.getState().setConversationItems([]);
+    previewStore.getState().setChatMessages([
+      {
+        type: "message",
+        role: "assistant",
+        content: [{ type: "output_text", text: INITIAL_MESSAGE }],
+      },
+    ]);
+    previewStore.getState().setConversationItems([]);
+  };
 
   const handleWizardUserMessage = async (msg: string) => {
     if (!role) {
@@ -65,8 +85,11 @@ export default function NewWorkerPage() {
     <div className="flex h-screen divide-x divide-gray-200">
       <div className="w-full md:w-1/2 flex flex-col">
         <div className="p-4 bg-gray-50 border-b font-semibold flex justify-between items-center">
-          <span>Create Worker</span>
-          <button className="text-sm text-blue-600">Publish</button>
+          <span>{name ? `Create Worker · ${name}` : "Create Worker"}</span>
+          <div className="flex gap-2">
+            <button onClick={restart} className="text-sm text-red-600">Restart</button>
+            <button className="text-sm text-blue-600">Publish</button>
+          </div>
         </div>
         <div className="flex-1 overflow-hidden">
           <Assistant
@@ -82,10 +105,10 @@ export default function NewWorkerPage() {
             <img
               src={avatarUrl}
               alt="avatar"
-              className="w-8 h-8 rounded-full animate-in fade-in"
+              className="w-8 h-8 rounded-full animate-in fade-in zoom-in-90 duration-700"
             />
           )}
-          <span>Preview</span>
+          <span>{name ? `${name} Preview` : "Preview"}</span>
         </div>
         <div className="flex-1 overflow-hidden">
           <Assistant store={previewStore} developerPrompt={previewPrompt} />
