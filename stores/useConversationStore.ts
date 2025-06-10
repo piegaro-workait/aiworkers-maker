@@ -3,7 +3,7 @@ import { Item } from "@/lib/assistant";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { INITIAL_MESSAGE } from "@/config/constants";
 
-interface ConversationState {
+export interface ConversationState {
   // Items displayed in the chat
   chatMessages: Item[];
   // Items sent to the Responses API
