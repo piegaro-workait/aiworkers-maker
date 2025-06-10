@@ -11,7 +11,6 @@ import {
 import { Button } from "./ui/button";
 import { FilePlus2, Plus, Trash2, CircleX } from "lucide-react";
 import { useDropzone } from "react-dropzone";
-import { Input } from "./ui/input";
 import {
   Tooltip,
   TooltipContent,
@@ -32,7 +31,6 @@ export default function FileUpload({
   onUnlinkStore,
 }: FileUploadProps) {
   const [file, setFile] = useState<File | null>(null);
-  const [newStoreName, setNewStoreName] = useState<string>("Default store");
   const [uploading, setUploading] = useState<boolean>(false);
   const [dialogOpen, setDialogOpen] = useState<boolean>(false);
 
@@ -80,14 +78,6 @@ export default function FileUpload({
     setFile(null);
   };
 
-  const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
-    const bytes = new Uint8Array(buffer);
-    let binary = "";
-    for (let i = 0; i < bytes.byteLength; i++) {
-      binary += String.fromCharCode(bytes[i]);
-    }
-    return btoa(binary);
-  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -99,68 +89,25 @@ export default function FileUpload({
 
     try {
       const arrayBuffer = await file.arrayBuffer();
-      const base64Content = arrayBufferToBase64(arrayBuffer);
-      const fileObject = {
-        name: file.name,
-        content: base64Content,
-      };
+      const text = new TextDecoder().decode(arrayBuffer);
 
-      // 1. Upload file
-      const uploadResponse = await fetch("/api/vector_stores/upload_file", {
+      const response = await fetch("/api/embeddings/store", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fileObject,
+          text,
+          datasetId: vectorStoreId || undefined,
         }),
       });
-      if (!uploadResponse.ok) {
-        throw new Error("Error uploading file");
-      }
-      const uploadData = await uploadResponse.json();
-      const fileId = uploadData.id;
-      if (!fileId) {
-        throw new Error("Error getting file ID");
-      }
-      console.log("Uploaded file:", uploadData);
 
-      let finalVectorStoreId = vectorStoreId;
-
-      // 2. If no vector store is linked, create one
-      if (!vectorStoreId || vectorStoreId === "") {
-        const createResponse = await fetch("/api/vector_stores/create_store", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            storeName: newStoreName,
-          }),
-        });
-        if (!createResponse.ok) {
-          throw new Error("Error creating vector store");
-        }
-        const createData = await createResponse.json();
-        finalVectorStoreId = createData.id;
+      if (!response.ok) {
+        throw new Error("Error storing embeddings");
       }
 
-      if (!finalVectorStoreId) {
-        throw new Error("Error getting vector store ID");
-      }
+      const data = await response.json();
+      const finalDatasetId = data.datasetId as string;
 
-      onAddStore(finalVectorStoreId);
-
-      // 3. Add file to vector store
-      const addFileResponse = await fetch("/api/vector_stores/add_file", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fileId,
-          vectorStoreId: finalVectorStoreId,
-        }),
-      });
-      if (!addFileResponse.ok) {
-        throw new Error("Error adding file to vector store");
-      }
-      const addFileData = await addFileResponse.json();
-      console.log("Added file to vector store:", addFileData);
+      onAddStore(finalDatasetId);
       setFile(null);
       setDialogOpen(false);
     } catch (error) {
@@ -186,26 +133,14 @@ export default function FileUpload({
           </DialogHeader>
           <div className="my-6">
             {!vectorStoreId || vectorStoreId === "" ? (
-              <div className="flex items-start gap-2 text-sm">
-                <label className="font-medium w-72" htmlFor="storeName">
-                  New vector store name
-                  <div className="text-xs text-zinc-400">
-                    A new store will be created when you upload a file.
-                  </div>
-                </label>
-                <Input
-                  id="storeName"
-                  type="text"
-                  value={newStoreName}
-                  onChange={(e) => setNewStoreName(e.target.value)}
-                  className="border rounded p-2"
-                />
+              <div className="text-sm text-zinc-500">
+                A new dataset will be created when you upload a file.
               </div>
             ) : (
               <div className="flex items-center justify-between flex-1 min-w-0">
                 <div className="flex items-center gap-2 min-w-0">
                   <div className="text-sm font-medium w-24 text-nowrap">
-                    Vector store
+                    Dataset
                   </div>
                   <div className="text-zinc-400  text-xs font-mono flex-1 text-ellipsis truncate">
                     {vectorStoreId}
@@ -220,7 +155,7 @@ export default function FileUpload({
                         />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Unlink vector store</p>
+                        <p>Unlink dataset</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
