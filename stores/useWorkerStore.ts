@@ -1,28 +1,14 @@
-import { create } from 'zustand';
-import { AIWorker } from '@/lib/types';
+import { create } from 'zustand'
+import { AIWorker } from '@/lib/types'
 
 interface WorkerState {
-  draftWorker: Partial<AIWorker>;
-  setDraftWorker: (worker: Partial<AIWorker>) => void;
-  updateDraftWorker: (data: Partial<AIWorker>) => void;
-  resetDraftWorker: () => void;
+  draft: Partial<AIWorker>
+  setDraft: (data: Partial<AIWorker>) => void
+  reset: () => void
 }
 
-const initialWorker: Partial<AIWorker> = {
-  name: '',
-  description: '',
-  instructions: '',
-  model: 'gpt-4',
-  temperature: 0.7,
-  tools: [],
-};
-
-const useWorkerStore = create<WorkerState>((set) => ({
-  draftWorker: initialWorker,
-  setDraftWorker: (worker) => set({ draftWorker: worker }),
-  updateDraftWorker: (data) =>
-    set((state) => ({ draftWorker: { ...state.draftWorker, ...data } })),
-  resetDraftWorker: () => set({ draftWorker: initialWorker }),
-}));
-
-export default useWorkerStore;
+export const useWorkerStore = create<WorkerState>((set) => ({
+  draft: {},
+  setDraft: (data) => set((state) => ({ draft: { ...state.draft, ...data } })),
+  reset: () => set({ draft: {} }),
+}))
