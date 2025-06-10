@@ -1,26 +1,22 @@
-import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabaseClient';
-import { AIWorker } from '@/lib/types';
+import { supabase } from '@/lib/supabaseClient'
+import { AIWorker } from '@/lib/types'
+import { NextRequest } from 'next/server'
+import { v4 as uuidv4 } from 'uuid'
 
 export async function GET() {
-  const { data, error } = await supabase.from('workers').select('*');
+  const { data, error } = await supabase.from('workers').select('*')
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return new Response('Error fetching workers', { status: 500 })
   }
-  return NextResponse.json(data as AIWorker[]);
+  return new Response(JSON.stringify(data), { status: 200 })
 }
 
-export async function POST(req: Request) {
-  const body: AIWorker = await req.json();
-  const { data, error } = await supabase
-    .from('workers')
-    .insert(body)
-    .select()
-    .single();
-
+export async function POST(req: NextRequest) {
+  const worker = (await req.json()) as AIWorker
+  worker.id = uuidv4()
+  const { error } = await supabase.from('workers').insert(worker)
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return new Response('Error creating worker', { status: 500 })
   }
-
-  return NextResponse.json(data as AIWorker);
+  return new Response(JSON.stringify(worker), { status: 200 })
 }
