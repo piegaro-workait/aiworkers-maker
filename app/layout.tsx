@@ -1,0 +1,26 @@
+import type { Metadata } from "next";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: "Responses starter app",
+  description: "Starter app for the OpenAI Responses API",
+  icons: {
+    icon: "/openai_logo.svg",
+  },
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body className="antialiased">
+          <div className="flex h-screen bg-gray-200 w-full flex-col  text-stone-900">
+            <main>{children}</main>
+          </div>
+        </body>
+    </html>
+  );
+}
