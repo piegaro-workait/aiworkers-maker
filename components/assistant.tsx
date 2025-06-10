@@ -10,12 +10,14 @@ interface AssistantProps {
   store?: StoreApi<ConversationState>;
   initialMessage?: string;
   developerPrompt?: string;
+  onUserMessage?: (message: string) => void;
 }
 
 export default function Assistant({
   store = useConversationStore,
   initialMessage,
   developerPrompt,
+  onUserMessage,
 }: AssistantProps) {
   const {
     chatMessages,
@@ -56,6 +58,9 @@ export default function Assistant({
       setAssistantLoading(true);
       addConversationItem(userMessage);
       addChatMessage(userItem);
+      if (onUserMessage) {
+        onUserMessage(message.trim());
+      }
       await processMessages(store, developerPrompt);
     } catch (error) {
       console.error("Error processing message:", error);
