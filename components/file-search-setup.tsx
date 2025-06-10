@@ -21,27 +21,19 @@ export default function FileSearchSetup() {
 
   const handleAddStore = async (storeId: string) => {
     if (storeId.trim()) {
-      const newStore = await fetch(
-        `/api/vector_stores/retrieve_store?vector_store_id=${storeId}`
-      ).then((res) => res.json());
-      if (newStore.id) {
-        console.log("Retrieved store:", newStore);
-        setVectorStore(newStore);
-      } else {
-        alert("Vector store not found");
-      }
+      setVectorStore({ id: storeId.trim(), name: "" });
     }
   };
 
   return (
     <div>
       <div className="text-sm text-zinc-500">
-        Upload a file to create a new vector store, or use an existing one.
+        Upload a file to create a new dataset, or use an existing one.
       </div>
       <div className="flex items-center gap-2 mt-2 h-10">
         <div className="flex items-center gap-2 w-full">
           <div className="text-sm font-medium w-24 text-nowrap">
-            Vector store
+            Dataset
           </div>
           {vectorStore?.id ? (
             <div className="flex items-center justify-between flex-1 min-w-0">
@@ -59,7 +51,7 @@ export default function FileSearchSetup() {
                       />
                     </TooltipTrigger>
                     <TooltipContent className="mr-2">
-                      <p>Unlink vector store</p>
+                      <p>Unlink dataset</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -69,7 +61,7 @@ export default function FileSearchSetup() {
             <div className="flex items-center gap-2">
               <Input
                 type="text"
-                placeholder="ID (vs_XXXX...)"
+                placeholder="Dataset ID"
                 value={newStoreId}
                 onChange={(e) => setNewStoreId(e.target.value)}
                 className="border border-zinc-300 rounded text-sm bg-white"

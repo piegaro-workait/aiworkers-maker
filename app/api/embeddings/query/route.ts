@@ -1,13 +1,31 @@
-import { supabase } from '@/lib/supabaseClient'
-import OpenAI from 'openai'
+import OpenAI from 'openai';
+import { supabase } from '@/lib/supabaseClient';
 
-const openai = new OpenAI()
+const openai = new OpenAI();
 
-export async function POST(req: Request) {
-  const { query } = await req.json()
-  const embeddingRes = await openai.embeddings.create({ model: 'text-embedding-3-small', input: query })
-  const queryVector = embeddingRes.data[0].embedding
-  const { data, error } = await supabase.rpc('match_embeddings', { query_embedding: queryVector, match_count: 5 })
-  if (error) return new Response('Error querying embeddings', { status: 500 })
-  return new Response(JSON.stringify(data), { status: 200 })
+export async function POST(request: Request) {
+  const { query, datasetId, matchCount = 5 } = await request.json();
+
+  if (!query || !datasetId) {
+    return new Response(JSON.stringify({ error: 'Missing query or datasetId' }), { status: 400 });
+  }
+
+  const embeddingResponse = await openai.embeddings.create({
+    model: 'text-embedding-3-small',
+    input: query,
+  });
+
+  const [{ embedding }] = embeddingResponse.data;
+
+  const { data, error } = await supabase.rpc('match_embeddings', {
+    query_embedding: embedding,
+    match_count: matchCount,
+    dataset_id: datasetId,
+  });
+
+  if (error) {
+    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+  }
+
+  return new Response(JSON.stringify(data), { status: 200 });
 }
