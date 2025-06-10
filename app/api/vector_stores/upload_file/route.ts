@@ -9,9 +9,11 @@ export async function POST(request: Request) {
     const fileBlob = new Blob([fileBuffer], {
       type: "application/octet-stream",
     });
+    const form = new FormData();
+    form.append('file', fileBlob, fileObject.name);
 
     const file = await openai.files.create({
-      file: new File([fileBlob], fileObject.name),
+      file: form.get('file') as any,
       purpose: "assistants",
     });
 
