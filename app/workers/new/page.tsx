@@ -1,44 +1,108 @@
-'use client'
-import { useState } from 'react'
-import { useWorkerStore } from '@/stores/useWorkerStore'
-import Assistant from '@/components/assistant'
+"use client";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import Assistant from "@/components/assistant";
+import useWorkerFormStore from "@/stores/useWorkerFormStore";
+import { useRouter } from "next/navigation";
 
-const steps = ['Role', 'Persona', 'Configure']
+export default function NewWorkerPage() {
+  const router = useRouter();
+  const {
+    role,
+    name,
+    traits,
+    step,
+    setRole,
+    setName,
+    setTraits,
+    nextStep,
+    prevStep,
+    reset,
+  } = useWorkerFormStore();
 
-export default function NewWorker() {
-  const [step, setStep] = useState(0)
-  const { draft, setDraft } = useWorkerStore()
+  const handleSubmit = async () => {
+    await fetch("/api/workers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role, name, traits }),
+    });
+    reset();
+    router.push("/store");
+  };
 
   return (
     <div className="flex h-screen">
-      <div className="w-1/2 p-4 border-r overflow-y-auto">
-        <h1 className="text-xl font-bold mb-4">New AI Worker · Draft</h1>
-        <div className="mb-4">Step {step + 1}: {steps[step]}</div>
-        {step === 0 && (
-          <div className="flex flex-col gap-2">
-            <label className="text-sm">Job Title</label>
-            <input className="border p-2" value={draft.role || ''} onChange={e=>setDraft({role:e.target.value})} />
-            <button className="mt-2 bg-blue-600 text-white px-3 py-1" onClick={()=>setStep(1)}>Next</button>
-          </div>
-        )}
+      <div className="w-full md:w-1/2 p-6 bg-white overflow-y-auto space-y-6">
         {step === 1 && (
-          <div className="flex flex-col gap-2">
-            <label className="text-sm">Worker Name</label>
-            <input className="border p-2" value={draft.name || ''} onChange={e=>setDraft({name:e.target.value})} />
-            <button className="mt-2 bg-blue-600 text-white px-3 py-1" onClick={()=>setStep(2)}>Next</button>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="role" className="text-sm font-medium">
+                Role
+              </label>
+              <Input
+                id="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                placeholder="Customer support"
+              />
+            </div>
+            <div>
+              <label htmlFor="name" className="text-sm font-medium">
+                Name
+              </label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Alex"
+              />
+            </div>
           </div>
         )}
         {step === 2 && (
-          <div className="flex flex-col gap-2">
-            <label className="text-sm">System Prompt</label>
-            <textarea className="border p-2" value={draft.systemPrompt || ''} onChange={e=>setDraft({systemPrompt:e.target.value})}></textarea>
-            <button className="mt-2 bg-blue-600 text-white px-3 py-1" onClick={()=>setStep(0)}>Back to Start</button>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="traits" className="text-sm font-medium">
+                Persona traits
+              </label>
+              <Textarea
+                id="traits"
+                value={traits}
+                onChange={(e) => setTraits(e.target.value)}
+                placeholder="Friendly, helpful..."
+              />
+            </div>
           </div>
         )}
+        {step === 3 && (
+          <div className="space-y-2">
+            <h2 className="text-lg font-medium">Summary</h2>
+            <p>
+              <strong>Role:</strong> {role}
+            </p>
+            <p>
+              <strong>Name:</strong> {name}
+            </p>
+            <p>
+              <strong>Traits:</strong> {traits}
+            </p>
+          </div>
+        )}
+        <div className="flex justify-between pt-4">
+          {step > 1 && (
+            <Button variant="secondary" onClick={prevStep}>
+              Back
+            </Button>
+          )}
+          {step < 3 && <div className="grow" />}
+          {step < 3 && <Button onClick={nextStep}>Next</Button>}
+          {step === 3 && <Button onClick={handleSubmit}>Create</Button>}
+        </div>
       </div>
-      <div className="w-1/2">
+      <div className="hidden md:block w-1/2">
         <Assistant />
       </div>
     </div>
-  )
+  );
 }
